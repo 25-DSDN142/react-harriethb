@@ -1,5 +1,5 @@
-// ----=  HANDS  =----
 let myImage;
+let paintLayer;
 let rightPrevX = null;
 let rightPrevY = null;
 let leftPrevX = null;
@@ -10,66 +10,61 @@ function prepareInteraction() {
 }
 
 function drawInteraction(faces, hands) {
-  // draw reference image once
+  // ⚙️ Create the paint layer once, safely after setup
+  if (!paintLayer) {
+    paintLayer = createGraphics(CaptureWidth, CaptureHeight);
+    paintLayer.clear();
+  }
+
+  // 🖼️ Draw reference image
   image(myImage, 40, 60, 400, 450);
 
-  // loop through detected hands
+  // 🖌️ Draw the persistent paint layer
+  image(paintLayer, 0, 0);
+
+  // ✋ Loop through hands
   for (let i = 0; i < hands.length; i++) {
     let hand = hands[i];
-    let whatGesture = detectHandGesture(hand);
-    let brushColor = null; // start with no color = no drawing
+    let gesture = detectHandGesture(hand);
+    let brushColor = null;
+
+    // Use index fingertip for painting position
     let x = hand.index_finger_tip.x;
     let y = hand.index_finger_tip.y;
 
-    // ----------- 🎨 Pick color based on hand + gesture -----------
-    if (hand.handedness === "Right" && whatGesture === "Thumbs Up") {
-      brushColor = color(135, 206, 250); // light blue
-    } 
-    else if (hand.handedness === "Left" && whatGesture === "Thumbs Up") {
-      brushColor = color(0, 102, 204); // medium blue
-    } 
-    else if (hand.handedness === "Right" && whatGesture === "Pointing") {
-      brushColor = color(10, 10, 40); // dark blue/black
-    } 
-    else if (hand.handedness === "Left" && whatGesture === "Pointing") {
-      brushColor = color(255, 243, 205); // cream
-    } 
-    else if (hand.handedness === "Right" && whatGesture === "Peace") {
-      brushColor = color(255, 140, 0); // orange
-    } 
-    else if (hand.handedness === "Left" && whatGesture === "Peace") {
-      brushColor = color(204, 85, 0); // darker orange
-    }
+    // 🎨 Choose color based on gesture + hand
+    if (hand.handedness === "Right" && gesture === "Thumbs Up") brushColor = color(135, 206, 250); // light blue
+    else if (hand.handedness === "Left" && gesture === "Thumbs Up") brushColor = color(0, 102, 204); // medium blue
+    else if (hand.handedness === "Right" && gesture === "Pointing") brushColor = color(10, 10, 40); // dark blue/black
+    else if (hand.handedness === "Left" && gesture === "Pointing") brushColor = color(255, 243, 205); // cream
+    else if (hand.handedness === "Right" && gesture === "Peace") brushColor = color(255, 140, 0); // orange
+    else if (hand.handedness === "Left" && gesture === "Peace") brushColor = color(204, 85, 0); // darker orange
 
-    // ----------- ✏️ Draw only if gesture matches -----------
-    if (brushColor !== null) {
-      stroke(brushColor);
-      strokeWeight(8);
-      strokeJoin(ROUND);
-      noFill();
+    // 🖋️ Draw if using a paint gesture
+    if (brushColor) {
+      paintLayer.stroke(brushColor);
+      paintLayer.strokeWeight(8);
+      paintLayer.noFill();
 
       if (hand.handedness === "Right") {
         if (rightPrevX !== null && rightPrevY !== null) {
-          line(rightPrevX, rightPrevY, x, y);
+          paintLayer.line(rightPrevX, rightPrevY, x, y);
         }
         rightPrevX = x;
         rightPrevY = y;
-      } 
-      else if (hand.handedness === "Left") {
+      } else {
         if (leftPrevX !== null && leftPrevY !== null) {
-          line(leftPrevX, leftPrevY, x, y);
+          paintLayer.line(leftPrevX, leftPrevY, x, y);
         }
         leftPrevX = x;
         leftPrevY = y;
       }
-    } 
-    else {
-      // if not using a drawing gesture, reset so lines don’t connect
+    } else {
+      // reset when not painting
       if (hand.handedness === "Right") {
         rightPrevX = null;
         rightPrevY = null;
-      } 
-      else {
+      } else {
         leftPrevX = null;
         leftPrevY = null;
       }
