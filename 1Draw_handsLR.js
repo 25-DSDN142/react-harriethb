@@ -1,72 +1,78 @@
 // ----=  HANDS  =----
-// USING THE GESTURE DETECTORS (check their values in the debug menu)
-// detectHandGesture(hand) returns "Pinch", "Peace", "Thumbs Up", "Pointing", "Open Palm", or "Fist"
-
 let myImage;
+let rightPrevX = null;
+let rightPrevY = null;
+let leftPrevX = null;
+let leftPrevY = null;
 
-/* load images here */
 function prepareInteraction() {
-  
- myImage = loadImage('/images/fish.jpg');
+  myImage = loadImage('/images/fish.jpg');
 }
 
 function drawInteraction(faces, hands) {
-  // draw your reference image
+  // draw reference image once
   image(myImage, 40, 60, 400, 450);
 
-  // for every detected hand
+  // loop through detected hands
   for (let i = 0; i < hands.length; i++) {
     let hand = hands[i];
-    if (showKeypoints) {
-      drawConnections(hand);
-    }
-
-    let middleFingerMcpX = hand.middle_finger_mcp.x;
-    let middleFingerMcpY = hand.middle_finger_mcp.y;
-
     let whatGesture = detectHandGesture(hand);
-    let brushColor = color(255); // default white if no match
+    let brushColor = null; // start with no color = no drawing
+    let x = hand.index_finger_tip.x;
+    let y = hand.index_finger_tip.y;
 
-    // ----------- 🎨 Six Pen Colors -----------
-    // 1. Right hand + Thumbs Up = Light Blue
+    // ----------- 🎨 Pick color based on hand + gesture -----------
     if (hand.handedness === "Right" && whatGesture === "Thumbs Up") {
       brushColor = color(135, 206, 250); // light blue
-    }
-
-    // 2. Left hand + Thumbs Up = Medium Blue
+    } 
     else if (hand.handedness === "Left" && whatGesture === "Thumbs Up") {
       brushColor = color(0, 102, 204); // medium blue
-    }
-
-    // 3. Right hand + Pointing = Dark Blue/Black
+    } 
     else if (hand.handedness === "Right" && whatGesture === "Pointing") {
-      brushColor = color(10, 10, 40); // dark blue-black
-    }
-
-    // 4. Left hand + Pointing = Cream
+      brushColor = color(10, 10, 40); // dark blue/black
+    } 
     else if (hand.handedness === "Left" && whatGesture === "Pointing") {
       brushColor = color(255, 243, 205); // cream
-    }
-
-    // 5. Right hand + Peace = Orange
+    } 
     else if (hand.handedness === "Right" && whatGesture === "Peace") {
       brushColor = color(255, 140, 0); // orange
-    }
-
-    // 6. Left hand + Peace = Darker Orange
+    } 
     else if (hand.handedness === "Left" && whatGesture === "Peace") {
       brushColor = color(204, 85, 0); // darker orange
     }
 
-    // ----------- ✏️ Drawing the brush shape -----------
-    fill(brushColor);
-    noStroke();
+    // ----------- ✏️ Draw only if gesture matches -----------
+    if (brushColor !== null) {
+      stroke(brushColor);
+      strokeWeight(8);
+      strokeJoin(ROUND);
+      noFill();
 
-    // you can change this to a smaller shape later (like a dot)
-    if (hand.handedness === "Right") {
-      rect(middleFingerMcpX, middleFingerMcpY, 20, 20);
-    } else if (hand.handedness === "Left") {
-      ellipse(middleFingerMcpX, middleFingerMcpY, 20, 20);
+      if (hand.handedness === "Right") {
+        if (rightPrevX !== null && rightPrevY !== null) {
+          line(rightPrevX, rightPrevY, x, y);
+        }
+        rightPrevX = x;
+        rightPrevY = y;
+      } 
+      else if (hand.handedness === "Left") {
+        if (leftPrevX !== null && leftPrevY !== null) {
+          line(leftPrevX, leftPrevY, x, y);
+        }
+        leftPrevX = x;
+        leftPrevY = y;
+      }
+    } 
+    else {
+      // if not using a drawing gesture, reset so lines don’t connect
+      if (hand.handedness === "Right") {
+        rightPrevX = null;
+        rightPrevY = null;
+      } 
+      else {
+        leftPrevX = null;
+        leftPrevY = null;
+      }
     }
   }
 }
