@@ -1,19 +1,21 @@
 let myImage;
 let paintLayer;
+let frameImage; // <--- add this
 let rightPrevX = null;
 let rightPrevY = null;
 let leftPrevX = null;
 let leftPrevY = null;
 
 // ----= VIRTUAL CANVAS SETUP =----
-const canvasX = 500;   // left edge of canvas
-const canvasY = 100;   // top edge of canvas
+const canvasX = 580;   // left edge of canvas
+const canvasY = 135;   // top edge of canvas
 const canvasWidth = 600;
-const canvasHeight = 600;
+const canvasHeight = 685;
 
 
 function prepareInteraction() {
   myImage = loadImage('/images/fish.jpg');
+   frameImage = loadImage('/images/frame png.webp');
 }
 
 function drawInteraction(faces, hands) {
@@ -29,11 +31,10 @@ function drawInteraction(faces, hands) {
   // 🖌️ Draw the persistent paint layer
   image(paintLayer, 0, 0);
 
-  // 🖼️ Draw canvas border (optional)
-  noFill();
-  stroke(255);
-  strokeWeight(4);
-  rect(canvasX, canvasY, canvasWidth, canvasHeight);
+   // draw frame on top of everything
+  image(frameImage, 450, 5, 850, 950);
+
+  
 
   // ✋ Loop through hands
   for (let i = 0; i < hands.length; i++) {
@@ -68,22 +69,22 @@ function drawInteraction(faces, hands) {
 
     // === SET BRUSH COLOR AND SIZE FOR 6 PAINT PENS ===
     if (hand.handedness === "Right" && gesture === "Thumbs Up") {
-      brushColor = color(135, 206, 250); // light blue
+      brushColor = color(48, 123, 156); // light blue
       brushSize = 6;
     } else if (hand.handedness === "Left" && gesture === "Thumbs Up") {
-      brushColor = color(0, 102, 204);   // medium blue
-      brushSize = 10;
+      brushColor = color(21, 71, 89);   // medium blue
+      brushSize = 100;
     } else if (hand.handedness === "Right" && gesture === "Pointing") {
-      brushColor = color(10, 10, 40);    // dark blue/black
+      brushColor = color(12, 31, 43);    // dark blue/black
       brushSize = 12;
     } else if (hand.handedness === "Left" && gesture === "Pointing") {
-      brushColor = color(255, 243, 205); // cream
+      brushColor = color(222, 211, 193); // cream
       brushSize = 8;
     } else if (hand.handedness === "Right" && gesture === "Peace") {
-      brushColor = color(255, 140, 0);   // orange
+      brushColor = color(217, 112, 67);   // orange
       brushSize = 14;
     } else if (hand.handedness === "Left" && gesture === "Peace") {
-      brushColor = color(204, 85, 0);    // darker orange
+      brushColor = color(148, 71, 46);    // darker orange
       brushSize = 16;
     }
 
