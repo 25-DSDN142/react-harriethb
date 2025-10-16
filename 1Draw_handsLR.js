@@ -1,12 +1,12 @@
 let myImage;
 let paintLayer;
-let frameImage; // <--- add this
+let frameImage; 
 let rightPrevX = null;
 let rightPrevY = null;
 let leftPrevX = null;
 let leftPrevY = null;
 
-// ----= VIRTUAL CANVAS SETUP =----
+// VIRTUAL CANVAS SETUP 
 const canvasX = 580;   // left edge of canvas
 const canvasY = 135;   // top edge of canvas
 const canvasWidth = 600;
@@ -19,16 +19,16 @@ function prepareInteraction() {
 }
 
 function drawInteraction(faces, hands) {
-  // ⚙️ Create the paint layer once, safely after setup
+  
   if (!paintLayer) {
     paintLayer = createGraphics(CaptureWidth, CaptureHeight);
     paintLayer.clear();
   }
 
-  // 🖼️ Draw reference image
+  // Draw reference image
   image(myImage, 40, 60, 400, 450);
 
-  // 🖌️ Draw the persistent paint layer
+  // Draw the persistent paint layer
   image(paintLayer, 0, 0);
 
    // draw frame on top of everything
@@ -36,28 +36,28 @@ function drawInteraction(faces, hands) {
 
   
 
-  // ✋ Loop through hands
+  //  Loop through hands
   for (let i = 0; i < hands.length; i++) {
     let hand = hands[i];
     let gesture = detectHandGesture(hand);
     let brushColor = null;
     let brushSize = 8;
 
-    // === LEFT HAND OPEN PALM = clear canvas ===
+    // LEFT HAND OPEN PALM = clear canvas 
     if (gesture === "Open Palm" && hand.handedness === "Left") {
       paintLayer.clear();
       rightPrevX = rightPrevY = leftPrevX = leftPrevY = null;
       continue;
     }
 
-    // === RIGHT HAND OPEN PALM = stop painting ===
+    // RIGHT HAND OPEN PALM = stop painting
     if (gesture === "Open Palm" && hand.handedness === "Right") {
       rightPrevX = null;
       rightPrevY = null;
       continue;
     }
 
-    // === SELECT FINGER TIP BASED ON GESTURE ===
+    // SELECT FINGER TIP BASED ON GESTURE 
     let x, y;
     if (gesture === "Thumbs Up") {
       x = hand.thumb_tip.x;
@@ -67,7 +67,7 @@ function drawInteraction(faces, hands) {
       y = hand.index_finger_tip.y;
     }
 
-    // === SET BRUSH COLOR AND SIZE FOR 6 PAINT PENS ===
+    // SET BRUSH COLOR AND SIZE FOR 6 PAINT PENS 
     if (hand.handedness === "Right" && gesture === "Thumbs Up") {
       brushColor = color(48, 123, 156); // light blue
       brushSize = 6;
@@ -88,12 +88,6 @@ function drawInteraction(faces, hands) {
       brushSize = 16;
     }
 
-    // === ERASER (Fist gesture) ===
-    if (gesture === "Fist") {
-      paintLayer.erase();
-      paintLayer.strokeWeight(30); // eraser size
-      paintLayer.noFill();
-
       // Only draw inside canvas
       if (x >= canvasX && x <= canvasX + canvasWidth &&
           y >= canvasY && y <= canvasY + canvasHeight) {
@@ -113,11 +107,7 @@ function drawInteraction(faces, hands) {
         }
       }
 
-      paintLayer.noErase();
-      continue;
-    }
-
-    // === PAINTING (only for your 6 brushes) ===
+    // PAINTING 
     if (brushColor) {
       // Only draw inside canvas
       if (x >= canvasX && x <= canvasX + canvasWidth &&
