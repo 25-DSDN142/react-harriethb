@@ -1,6 +1,7 @@
 let myImage;
 let paintLayer;
 let frameImage; 
+let paintImage;
 let rightPrevX = null;
 let rightPrevY = null;
 let leftPrevX = null;
@@ -16,6 +17,7 @@ const canvasHeight = 685;
 function prepareInteraction() {
   myImage = loadImage('/images/fish.jpg');
    frameImage = loadImage('/images/frame png.webp');
+   paintImage = loadImage('/images/paintbrushh.png')
 }
 
 function drawInteraction(faces, hands) {
@@ -34,7 +36,6 @@ function drawInteraction(faces, hands) {
    // draw frame on top of everything
   image(frameImage, 450, 5, 850, 950);
 
-  
 
   //  Loop through hands
   for (let i = 0; i < hands.length; i++) {
@@ -70,16 +71,16 @@ function drawInteraction(faces, hands) {
     // SET BRUSH COLOR AND SIZE FOR 6 PAINT PENS 
     if (hand.handedness === "Right" && gesture === "Thumbs Up") {
       brushColor = color(48, 123, 156); // light blue
-      brushSize = 6;
+      brushSize = 8;
     } else if (hand.handedness === "Left" && gesture === "Thumbs Up") {
       brushColor = color(21, 71, 89);   // medium blue
-      brushSize = 100;
+      brushSize = 150;
     } else if (hand.handedness === "Right" && gesture === "Pointing") {
       brushColor = color(12, 31, 43);    // dark blue/black
-      brushSize = 12;
+      brushSize = 10;
     } else if (hand.handedness === "Left" && gesture === "Pointing") {
       brushColor = color(222, 211, 193); // cream
-      brushSize = 8;
+      brushSize = 20;
     } else if (hand.handedness === "Right" && gesture === "Peace") {
       brushColor = color(217, 112, 67);   // orange
       brushSize = 14;
@@ -141,7 +142,34 @@ function drawInteraction(faces, hands) {
       if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
       else { leftPrevX = leftPrevY = null; }
     }
+
+// SHOW BRUSH FOLLOWING FINGER
+if (brushColor) {
+  // Draw paintbrush image at fingertip position
+  image(paintImage, x , y -100, 100, 100); 
+} 
+    
   }
+
+  // TEXT AND PALETTE GUIDE
+push();
+fill(21, 71, 89);
+textAlign(LEFT);
+textSize(45);
+textStyle(BOLD)
+text("RECREATE THIS ", 40, height-400);
+textSize(70);
+text("PAINTING", 40, height-330);
+textSize(22);
+text("Right Thumbs Up = Light Blue", 40, height - 260);
+text("Left Thumbs Up = Medium Blue", 40, height - 230);
+text("Right Pointing = Dark Blue/Black", 40, height - 200);
+text("Left Pointing = Cream", 40, height - 170);
+text("Right Peace = Orange", 40, height - 140);
+text("Left Peace = Darker Orange", 40, height - 110);
+text("Left Open Palm = Clear Canvas", 40, height - 80);
+pop();
+
 }
 
 
