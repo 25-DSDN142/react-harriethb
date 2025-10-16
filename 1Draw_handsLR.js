@@ -109,44 +109,99 @@ function drawInteraction(faces, hands) {
       }
 
     // PAINTING 
-    if (brushColor) {
-      // Only draw inside canvas
-      if (x >= canvasX && x <= canvasX + canvasWidth &&
-          y >= canvasY && y <= canvasY + canvasHeight) {
+   if (brushColor) {
+  // Only draw inside canvas
+  if (x >= canvasX && x <= canvasX + canvasWidth &&
+      y >= canvasY && y <= canvasY + canvasHeight) {
 
-        paintLayer.stroke(brushColor);
-        paintLayer.strokeWeight(brushSize);
+    // determine if this brush should be textured
+    let textured = false;
+    if (
+      (hand.handedness === "Right" && gesture === "Thumbs Up") ||  // light blue
+      (hand.handedness === "Right" && gesture === "Pointing") ||   // dark blue/black
+      (hand.handedness === "Left" && gesture === "Peace")          // dark orange
+    ) {
+      textured = true;
+    }
+
+    if (!textured) {
+      // normal smooth brush
+      paintLayer.stroke(brushColor);
+      paintLayer.strokeWeight(brushSize);
+      paintLayer.noFill();
+
+      if (hand.handedness === "Right") {
+        if (rightPrevX !== null && rightPrevY !== null) {
+          paintLayer.line(rightPrevX, rightPrevY, x, y);
+        }
+        rightPrevX = x;
+        rightPrevY = y;
+      } else {
+        if (leftPrevX !== null && leftPrevY !== null) {
+          paintLayer.line(leftPrevX, leftPrevY, x, y);
+        }
+        leftPrevX = x;
+        leftPrevY = y;
+      }
+    } else {
+      // --- textured brush ---
+      for (let i = 0; i < 4; i++) { // number of texture strands
+        let offsetX = random(-2, 2);
+        let offsetY = random(-2, 2);
+        let alpha = random(100, 180); // opacity (0–255)
+        let tColor = color(
+          red(brushColor),
+          green(brushColor),
+          blue(brushColor),
+          alpha
+        );
+        paintLayer.stroke(tColor);
+        paintLayer.strokeWeight(brushSize - random(2, 6));
         paintLayer.noFill();
 
         if (hand.handedness === "Right") {
           if (rightPrevX !== null && rightPrevY !== null) {
-            paintLayer.line(rightPrevX, rightPrevY, x, y);
+            paintLayer.line(rightPrevX + offsetX, rightPrevY + offsetY, x + offsetX, y + offsetY);
           }
-          rightPrevX = x;
-          rightPrevY = y;
         } else {
           if (leftPrevX !== null && leftPrevY !== null) {
-            paintLayer.line(leftPrevX, leftPrevY, x, y);
+            paintLayer.line(leftPrevX + offsetX, leftPrevY + offsetY, x + offsetX, y + offsetY);
           }
-          leftPrevX = x;
-          leftPrevY = y;
         }
-      } else {
-        // outside canvas -> reset previous points
-        if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
-        else { leftPrevX = leftPrevY = null; }
       }
 
-    } else {
-      // not painting -> reset previous points
-      if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
-      else { leftPrevX = leftPrevY = null; }
+      // update previous positions
+      if (hand.handedness === "Right") {
+        rightPrevX = x;
+        rightPrevY = y;
+      } else {
+        leftPrevX = x;
+        leftPrevY = y;
+      }
     }
 
-// SHOW BRUSH FOLLOWING FINGER
-if (brushColor) {
-  // Draw paintbrush image at fingertip position
-  image(paintImage, x , y -100, 100, 100); 
+  } else {
+    // outside canvas -> reset previous points
+    if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
+    else { leftPrevX = leftPrevY = null; }
+  }
+
+} else {
+  // not painting -> reset previous points
+  if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
+  else { leftPrevX = leftPrevY = null; }
+}
+
+// === ALIVE PAINTBRUSH IMAGE ===
+    if (brushColor && x >= canvasX && x <= canvasX + canvasWidth &&
+        y >= canvasY && y <= canvasY + canvasHeight) {
+      push();
+      translate(x +50, y - 50);
+      // gentle wobble rotation + size pulse
+      rotate(sin(frameCount * 0.1) * 0.2);
+      let sizePulse = 100 + sin(frameCount * 0.15) * 5;
+      image(paintImage, -sizePulse/2, -sizePulse/2, sizePulse, sizePulse);
+      pop();
 } 
     
   }
