@@ -21,7 +21,7 @@ function prepareInteraction() {
 }
 
 function drawInteraction(faces, hands) {
-  
+  1
   if (!paintLayer) {
     paintLayer = createGraphics(CaptureWidth, CaptureHeight);
     paintLayer.clear();
@@ -108,88 +108,140 @@ function drawInteraction(faces, hands) {
         }
       }
 
-    // PAINTING 
-   if (brushColor) {
+    // === PAINTING ===
+if (brushColor) {
   // Only draw inside canvas
   if (x >= canvasX && x <= canvasX + canvasWidth &&
       y >= canvasY && y <= canvasY + canvasHeight) {
 
-    // determine if this brush should be textured
-    let textured = false;
-    if (
-      (hand.handedness === "Right" && gesture === "Thumbs Up") ||  // light blue
-      (hand.handedness === "Right" && gesture === "Pointing") ||   // dark blue/black
-      (hand.handedness === "Left" && gesture === "Peace")          // dark orange
-    ) {
-      textured = true;
-    }
+    // --- SPECIAL BRUSH TYPES ---
+let brushType = "normal";
 
-    if (!textured) {
-      // normal smooth brush
-      paintLayer.stroke(brushColor);
-      paintLayer.strokeWeight(brushSize);
+if (hand.handedness === "Right" && gesture === "Pointing") {
+  brushType = "hair"; // dark blue
+} else if (hand.handedness === "Right" && gesture === "Thumbs Up") {
+  brushType = "hair"; // light blue now uses hair/grass brush too
+} else if (hand.handedness === "Left" && gesture === "Pointing") {
+  brushType = "smooth"; // cream
+} else if (
+  (hand.handedness === "Right" && gesture === "Peace") || 
+  (hand.handedness === "Left" && gesture === "Peace")
+) {
+  brushType = "spray"; // orange + dark orange
+} else {
+  brushType = "textured"; // fallback for medium blue
+}
+
+// --- DRAW BASED ON BRUSH TYPE ---
+switch (brushType) {
+
+  // GRASS BRUSH (dark blue + light blue)
+  case "hair":
+    for (let i = 0; i < 15; i++) {
+      let angle = random(TWO_PI);
+      let length = random(5, 20);
+      let offsetX = cos(angle) * length;
+      let offsetY = sin(angle) * length;
+
+      let alpha = random(120, 180);
+      let hColor = color(
+        red(brushColor),
+        green(brushColor),
+        blue(brushColor),
+        alpha
+      );
+
+      paintLayer.stroke(hColor);
+      paintLayer.strokeWeight(1.5);
+      paintLayer.line(x, y, x + offsetX, y + offsetY);
+    }
+    rightPrevX = rightPrevY = null;
+    break;
+
+  // SMOOTH BRUSH (cream)
+  case "smooth":
+    paintLayer.stroke(brushColor);
+    paintLayer.strokeWeight(brushSize);
+    paintLayer.noFill();
+
+    if (leftPrevX !== null && leftPrevY !== null) {
+      paintLayer.line(leftPrevX, leftPrevY, x, y);
+    }
+    leftPrevX = x;
+    leftPrevY = y;
+    break;
+
+  // SPRAY PAINT (orange & dark orange)
+  case "spray":
+    for (let i = 0; i < 120; i++) {
+      let angle = random(TWO_PI);
+      let radius = random(0, 35);
+      let dx = cos(angle) * radius;
+      let dy = sin(angle) * radius;
+
+      let alpha = random(40, 100);
+      let sprayColor = color(
+        red(brushColor),
+        green(brushColor),
+        blue(brushColor),
+        alpha
+      );
+
+      paintLayer.noStroke();
+      paintLayer.fill(sprayColor);
+      paintLayer.circle(x + dx, y + dy, random(2, 5));
+    }
+    if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
+    else { leftPrevX = leftPrevY = null; }
+    break;
+
+  // LIGHTLY TEXTURED 
+  case "textured":
+    for (let i = 0; i < 4; i++) {
+      let offsetX = random(-2, 2);
+      let offsetY = random(-2, 2);
+      let alpha = random(100, 180);
+      let tColor = color(
+        red(brushColor),
+        green(brushColor),
+        blue(brushColor),
+        alpha
+      );
+      paintLayer.stroke(tColor);
+      paintLayer.strokeWeight(brushSize - random(2, 6));
       paintLayer.noFill();
 
       if (hand.handedness === "Right") {
         if (rightPrevX !== null && rightPrevY !== null) {
-          paintLayer.line(rightPrevX, rightPrevY, x, y);
+          paintLayer.line(rightPrevX + offsetX, rightPrevY + offsetY, x + offsetX, y + offsetY);
         }
-        rightPrevX = x;
-        rightPrevY = y;
       } else {
         if (leftPrevX !== null && leftPrevY !== null) {
-          paintLayer.line(leftPrevX, leftPrevY, x, y);
+          paintLayer.line(leftPrevX + offsetX, leftPrevY + offsetY, x + offsetX, y + offsetY);
         }
-        leftPrevX = x;
-        leftPrevY = y;
-      }
-    } else {
-      // --- textured brush ---
-      for (let i = 0; i < 4; i++) { // number of texture strands
-        let offsetX = random(-2, 2);
-        let offsetY = random(-2, 2);
-        let alpha = random(100, 180); // opacity (0–255)
-        let tColor = color(
-          red(brushColor),
-          green(brushColor),
-          blue(brushColor),
-          alpha
-        );
-        paintLayer.stroke(tColor);
-        paintLayer.strokeWeight(brushSize - random(2, 6));
-        paintLayer.noFill();
-
-        if (hand.handedness === "Right") {
-          if (rightPrevX !== null && rightPrevY !== null) {
-            paintLayer.line(rightPrevX + offsetX, rightPrevY + offsetY, x + offsetX, y + offsetY);
-          }
-        } else {
-          if (leftPrevX !== null && leftPrevY !== null) {
-            paintLayer.line(leftPrevX + offsetX, leftPrevY + offsetY, x + offsetX, y + offsetY);
-          }
-        }
-      }
-
-      // update previous positions
-      if (hand.handedness === "Right") {
-        rightPrevX = x;
-        rightPrevY = y;
-      } else {
-        leftPrevX = x;
-        leftPrevY = y;
       }
     }
 
+    if (hand.handedness === "Right") {
+      rightPrevX = x;
+      rightPrevY = y;
+    } else {
+      leftPrevX = x;
+      leftPrevY = y;
+    }
+    break;
+}
+
   } else {
-    // outside canvas -> reset previous points
-    if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
-    else { leftPrevX = leftPrevY = null; }
+    // Outside canvas -> reset previous points
+    if (hand.handedness === "Right") rightPrevX = rightPrevY = null;
+    else leftPrevX = leftPrevY = null;
   }
 
 } else {
-  // not painting -> reset previous points
-  if (hand.handedness === "Right") { rightPrevX = rightPrevY = null; }
-  else { leftPrevX = leftPrevY = null; }
+  // Not painting -> reset previous points
+  if (hand.handedness === "Right") rightPrevX = rightPrevY = null;
+  else leftPrevX = leftPrevY = null;
 }
 
 // === ALIVE PAINTBRUSH IMAGE ===
